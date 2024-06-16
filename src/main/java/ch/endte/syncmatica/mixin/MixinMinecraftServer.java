@@ -1,36 +1,70 @@
 package ch.endte.syncmatica.mixin;
 
-import ch.endte.syncmatica.FileStorage;
-import ch.endte.syncmatica.SyncmaticManager;
+import ch.endte.syncmatica.Reference;
 import ch.endte.syncmatica.Syncmatica;
 import ch.endte.syncmatica.communication.ServerCommunicationManager;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.WorldSavePath;
+import ch.endte.syncmatica.data.FileStorage;
+import ch.endte.syncmatica.data.SyncmaticManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.function.Function;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.WorldSavePath;
 
 @Mixin(MinecraftServer.class)
-public class MixinMinecraftServer {
-    @Inject(method = "startServer", at = @At("RETURN"))
-    private static <S extends MinecraftServer> void initSyncmatica(final Function<Thread, S> serverFactory, final CallbackInfoReturnable<S> ci) {
-        final MinecraftServer returnValue = ci.getReturnValue();
+public class MixinMinecraftServer
+{
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;setupServer()Z"), method = "runServer")
+    private void syncmatica$onServerStarting(CallbackInfo ci)
+    {
+        final MinecraftServer server = (MinecraftServer) (Object) this;
+        Syncmatica.debug("MixinMinecraftServer#onServerStarting()");
+
+        if (server.isDedicated())
+        {
+            Reference.setDedicatedServer(true);
+            Reference.setOpenToLan(false);
+        }
+        if (server.isSingleplayer())
+        {
+            Reference.setOpenToLan(false);
+        }
+    }
+
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;createMetadata()Lnet/minecraft/server/ServerMetadata;", ordinal = 0), method = "runServer")
+    private void syncmatica$onServerStarted(CallbackInfo ci)
+    {
+        final MinecraftServer server = (MinecraftServer) (Object) this;
+        Syncmatica.debug("MixinMinecraftServer#onServerStarted()");
+
+        if (server.isDedicated())
+        {
+            Reference.setDedicatedServer(true);
+            Reference.setOpenToLan(false);
+        }
+        if (server.isSingleplayer())
+        {
+            Reference.setOpenToLan(false);
+        }
+
+        // Process Syncmatica Server Context
         Syncmatica.initServer(
                 new ServerCommunicationManager(),
                 new FileStorage(),
                 new SyncmaticManager(),
-                !returnValue.isDedicated(),
-                returnValue.getSavePath(WorldSavePath.ROOT).toFile()
+                !server.isDedicated(),
+                server.getSavePath(WorldSavePath.ROOT).toFile()
         ).startup();
     }
 
-    // at
-    @Inject(method = "shutdown", at = @At("TAIL"))
-    public void shutdownSyncmatica(final CallbackInfo ci) {
+    @Inject(at = @At("TAIL"), method = "shutdown")
+    private void syncmatica$onServerStopped(CallbackInfo info)
+    {
+        //final MinecraftServer server = (MinecraftServer) (Object) this;
+        Syncmatica.debug("MixinMinecraftServer#onServerStopped()");
+
+        Reference.setIntegratedServer(false);
         Syncmatica.shutdown();
     }
 }

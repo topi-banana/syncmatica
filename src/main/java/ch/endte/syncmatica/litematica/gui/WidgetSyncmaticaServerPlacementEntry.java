@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.LogManager;
-
 import ch.endte.syncmatica.Context;
-import ch.endte.syncmatica.LocalLitematicState;
-import ch.endte.syncmatica.ServerPlacement;
+import ch.endte.syncmatica.Syncmatica;
+import ch.endte.syncmatica.data.LocalLitematicState;
+import ch.endte.syncmatica.data.ServerPlacement;
 import ch.endte.syncmatica.communication.ClientCommunicationManager;
 import ch.endte.syncmatica.communication.ExchangeTarget;
-import ch.endte.syncmatica.communication.PacketType;
 import ch.endte.syncmatica.litematica.LitematicManager;
+import ch.endte.syncmatica.network.PacketType;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
@@ -151,13 +150,13 @@ public class WidgetSyncmaticaServerPlacementEntry extends WidgetListEntryBase<Se
                     final ExchangeTarget server = ((ClientCommunicationManager) con.getCommunicationManager()).getServer();
                     final PacketByteBuf packetBuf = new PacketByteBuf(Unpooled.buffer());
                     packetBuf.writeUuid(placement.placement.getId());
-                    server.sendPacket(PacketType.REMOVE_SYNCMATIC.identifier, packetBuf, LitematicManager.getInstance().getActiveContext());
+                    server.sendPacket(PacketType.REMOVE_SYNCMATIC, packetBuf, LitematicManager.getInstance().getActiveContext());
                 }
             },
             MATERIAL_GATHERING() {
                 @Override
                 void onAction(final WidgetSyncmaticaServerPlacementEntry placement) {
-                    LogManager.getLogger().info("Opened Material Gatherings GUI - currently unsupported operation");
+                    Syncmatica.LOGGER.info("Opened Material Gatherings GUI - currently unsupported operation");
                 }
             };
 

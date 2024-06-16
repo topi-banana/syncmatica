@@ -4,15 +4,16 @@ import ch.endte.syncmatica.Context;
 import ch.endte.syncmatica.litematica.LitematicManager;
 import ch.endte.syncmatica.litematica.gui.ButtonListenerChangeMenu;
 import ch.endte.syncmatica.litematica.gui.MainMenuButtonType;
-import fi.dy.masa.litematica.gui.GuiMainMenu;
-import fi.dy.masa.litematica.selection.SelectionMode;
-import fi.dy.masa.malilib.gui.GuiBase;
-import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import fi.dy.masa.malilib.util.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import fi.dy.masa.malilib.gui.GuiBase;
+import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.litematica.gui.GuiMainMenu;
+import fi.dy.masa.litematica.selection.SelectionMode;
 
 @Mixin(GuiMainMenu.class)
 public class MixinGuiMainMenu extends GuiBase {
@@ -27,6 +28,7 @@ public class MixinGuiMainMenu extends GuiBase {
         createChangeMenuButton(x, y, width, MainMenuButtonType.MATERIAL_GATHERINGS).setEnabled(false);
     }
 
+    @Unique
     private ButtonGeneric createChangeMenuButton(final int x, final int y, final int width, final MainMenuButtonType type) {
         final ButtonGeneric button = new ButtonGeneric(x, y, width, 20, type.getTranslatedKey(), type.getIcon());
         final Context con = LitematicManager.getInstance().getActiveContext();
@@ -35,6 +37,7 @@ public class MixinGuiMainMenu extends GuiBase {
         return button;
     }
 
+    @Unique
     private int getButtonWidth() {
         int width = 0;
 

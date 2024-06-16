@@ -1,6 +1,7 @@
 package ch.endte.syncmatica.litematica.gui;
 
-import ch.endte.syncmatica.ServerPlacement;
+import ch.endte.syncmatica.Reference;
+import ch.endte.syncmatica.data.ServerPlacement;
 import fi.dy.masa.litematica.gui.GuiMainMenu.ButtonListenerChangeMenu;
 import fi.dy.masa.malilib.gui.GuiListBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
@@ -10,7 +11,7 @@ public class GuiSyncmaticaServerPlacementList extends GuiListBase<ServerPlacemen
 
 	public GuiSyncmaticaServerPlacementList() {
 		super(12, 30);
-		title = StringUtils.translate("syncmatica.gui.title.manage_server_placements");
+		title = StringUtils.translate("syncmatica.gui.title.manage_server_placements", String.format("v%s", Reference.MOD_VERSION));
 	}
 
 	@Override

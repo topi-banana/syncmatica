@@ -1,72 +1,78 @@
 package ch.endte.syncmatica.communication.exchange;
 
+import java.util.Collection;
 import ch.endte.syncmatica.Context;
-import ch.endte.syncmatica.ServerPlacement;
+import ch.endte.syncmatica.Reference;
 import ch.endte.syncmatica.Syncmatica;
 import ch.endte.syncmatica.communication.ExchangeTarget;
 import ch.endte.syncmatica.communication.FeatureSet;
-import ch.endte.syncmatica.communication.PacketType;
+import ch.endte.syncmatica.data.ServerPlacement;
+import ch.endte.syncmatica.network.PacketType;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
-import org.apache.logging.log4j.LogManager;
 
-import java.util.Collection;
-
-public class VersionHandshakeServer extends FeatureExchange {
-
+public class VersionHandshakeServer extends FeatureExchange
+{
     private String partnerVersion;
+    public VersionHandshakeServer(final ExchangeTarget partner, final Context con) { super(partner, con); }
 
-    public VersionHandshakeServer(final ExchangeTarget partner, final Context con) {
-        super(partner, con);
+    @Override
+    public boolean checkPacket(final PacketType type, final PacketByteBuf packetBuf)
+    {
+        return type.equals(PacketType.REGISTER_VERSION)
+                || super.checkPacket(type, packetBuf);
     }
 
     @Override
-    public boolean checkPacket(final Identifier id, final PacketByteBuf packetBuf) {
-        return id.equals(PacketType.REGISTER_VERSION.identifier)
-                || super.checkPacket(id, packetBuf);
-    }
-
-    @Override
-    public void handle(final Identifier id, final PacketByteBuf packetBuf) {
-        if (id.equals(PacketType.REGISTER_VERSION.identifier)) {
-            partnerVersion = packetBuf.readString(32767);
-            if (!getContext().checkPartnerVersion(partnerVersion)) {
-                LogManager.getLogger(VersionHandshakeServer.class).info("Denying syncmatica join due to outdated client with local version {} and client version {}", Syncmatica.VERSION, partnerVersion);
+    public void handle(final PacketType type, final PacketByteBuf packetBuf)
+    {
+        if (type.equals(PacketType.REGISTER_VERSION))
+        {
+            partnerVersion = packetBuf.readString(PACKET_MAX_STRING_SIZE);
+            if (!getContext().checkPartnerVersion(partnerVersion))
+            {
+                Syncmatica.LOGGER.info("Denying syncmatica join due to outdated client with local version {} and client version {} from partner {}", Reference.MOD_VERSION, partnerVersion, getPartner().getPersistentName());
                 // same as client - avoid further packets
                 close(false);
                 return;
             }
             final FeatureSet fs = FeatureSet.fromVersionString(partnerVersion);
-            if (fs == null) {
+            if (fs == null)
+            {
                 requestFeatureSet();
-            } else {
+            }
+            else
+            {
                 getPartner().setFeatureSet(fs);
                 onFeatureSetReceive();
             }
-        } else {
-            super.handle(id, packetBuf);
         }
-
+        else
+        {
+            super.handle(type, packetBuf);
+        }
     }
 
     @Override
-    public void onFeatureSetReceive() {
-        LogManager.getLogger(VersionHandshakeServer.class).info("Syncmatica client joining with local version {} and client version {}", Syncmatica.VERSION, partnerVersion);
+    public void onFeatureSetReceive()
+    {
+        Syncmatica.LOGGER.info("Syncmatica client joining with local version {} and client version {}", Reference.MOD_VERSION, partnerVersion);
         final PacketByteBuf newBuf = new PacketByteBuf(Unpooled.buffer());
         final Collection<ServerPlacement> l = getContext().getSyncmaticManager().getAll();
         newBuf.writeInt(l.size());
-        for (final ServerPlacement p : l) {
+        for (final ServerPlacement p : l)
+        {
             getManager().putMetaData(p, newBuf, getPartner());
         }
-        getPartner().sendPacket(PacketType.CONFIRM_USER.identifier, newBuf, getContext());
+        getPartner().sendPacket(PacketType.CONFIRM_USER, newBuf, getContext());
         succeed();
     }
 
     @Override
-    public void init() {
+    public void init()
+    {
         final PacketByteBuf newBuf = new PacketByteBuf(Unpooled.buffer());
-        newBuf.writeString(Syncmatica.VERSION);
-        getPartner().sendPacket(PacketType.REGISTER_VERSION.identifier, newBuf, getContext());
+        newBuf.writeString(Reference.MOD_VERSION);
+        getPartner().sendPacket(PacketType.REGISTER_VERSION, newBuf, getContext());
     }
 }
