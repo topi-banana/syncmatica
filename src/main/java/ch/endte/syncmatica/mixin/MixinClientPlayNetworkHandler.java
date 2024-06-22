@@ -26,11 +26,6 @@ public abstract class MixinClientPlayNetworkHandler implements IClientPlay
     @Unique
     private ClientCommunicationManager comManager = null;
 
-    /**
-     * This is required for "exposing" Custom Payload Packets that are getting obfuscated behind Config/Play channel filters, etc.
-     * And it also allows for "OpenToLan" functionality to work, because via the Fabric API, the network handlers are NULL.
-     * Perhaps it's a bug in Fabric?
-     */
     @Inject(method = "onCustomPayload", at = @At("HEAD"), cancellable = true)
     private void syncmatica$handlePacket(CustomPayload packet, CallbackInfo ci)
     {

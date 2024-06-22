@@ -2,10 +2,11 @@ package ch.endte.syncmatica.network.handler;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
-import ch.endte.syncmatica.network.actor.ActorClientPlayHandler;
 import ch.endte.syncmatica.network.SyncmaticaPacket;
+import ch.endte.syncmatica.network.actor.ActorClientPlayHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
@@ -33,6 +34,12 @@ public class ClientPlayHandler
         {
             sendSyncPacket(payload);
         }
+    }
+
+    public static void receiveSyncPayload(@Nonnull SyncmaticaPacket data)
+    {
+        CallbackInfo ci = new CallbackInfo("receiveSyncPacket", false);
+        ActorClientPlayHandler.getInstance().packetEvent(data.getType(), data.getPacket(), MinecraftClient.getInstance().getNetworkHandler(), ci);
     }
 
     public static void receiveSyncPayload(SyncmaticaPacket.Payload payload, ClientPlayNetworking.Context context)
