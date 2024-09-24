@@ -14,8 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+//#if MC >= 12006
+import net.minecraft.server.network.ConnectedClientData;
+//#endif
 
 @Mixin(PlayerManager.class)
 public class MixinPlayerManager
@@ -23,7 +26,12 @@ public class MixinPlayerManager
     public MixinPlayerManager() { super(); }
 
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
+
+    //#if MC >= 12006
     private void syncmatica$eventOnPlayerJoin(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci)
+    //#else
+    //$$ private void syncmatica$eventOnPlayerJoin(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci)
+    //#endif
     {
         Syncmatica.debug("MixinPlayerManager#onPlayerJoin(): player {}", player.getName().getLiteralString());
 

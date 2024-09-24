@@ -8,9 +8,14 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
+
+//#if MC>=12002
+import net.minecraft.network.packet.CustomPayload;
+//#else
+//$$ import net.minecraft.network.packet.CustomPayload;
+//#endif
 
 /**
  * Network packet senders / receivers (Client Context)

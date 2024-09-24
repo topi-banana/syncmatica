@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "syncmatica",
-	"version": "${mod_version}",
-	"name": "Syncmatica",
+	"id": "${id}",
+	"version": "${version}",
+	"name": "${name}",
 	"description": "Server-wide shared litematics.",
 	"authors": [
 		"nnnik",
@@ -23,7 +23,7 @@
 		"syncmatica.litematica_mixin.json"
 	],
 	"depends": {
-		"minecraft": ">=1.21 <=1.21.1",
+		"minecraft": "${minecraft_dependency}",
 		"fabric-networking-api-v1": ">=4.1.0"
 	},
 	"suggests": {

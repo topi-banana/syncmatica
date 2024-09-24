@@ -20,7 +20,7 @@ public class MixinMinecraftClient
 {
     @Shadow private boolean integratedServerRunning;
 
-    @Inject(method = "startIntegratedServer", at = @At("TAIL"))
+    @Inject(method = "startIntegratedServer*", at = @At("TAIL"))
     private void syncmatica$startIntegratedServer(LevelStorage.Session session, ResourcePackManager dataPackManager, SaveLoader saveLoader, boolean newWorld, CallbackInfo ci)
     {
         if (this.integratedServerRunning)

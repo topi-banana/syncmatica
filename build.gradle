@@ -1,80 +1,42 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
+	id 'fabric-loom' version '1.7-SNAPSHOT' apply false
+
+	// https://github.com/ReplayMod/preprocessor
+	// https://github.com/Fallen-Breath/preprocessor
+	id 'com.replaymod.preprocess' version 'ce1aeb2b'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
+preprocess {
+	def mc12001 = createNode('1.20.1', 1_20_01, '')
+	def mc12006 = createNode('1.20.6', 1_20_06, '')
+	def mc12101 = createNode('1.21.1', 1_21_01, '')
 
-repositories {
-	maven { url 'https://masa.dy.fi/maven' }
-	maven { url 'https://maven.terraformersmc.com/releases/' }
-	maven { url 'https://jitpack.io' }
+	mc12001.link(mc12006, null)
+	mc12006.link(mc12101, null)
 }
 
-group = project.maven_group + "." + project.mod_id
-archivesBaseName = project.mod_file_name + '-' + project.minecraft_version_out
-version = project.mod_version
-
-dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.mappings_version}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
-	implementation "com.google.code.findbugs:jsr305:3.0.2"
-	
-	//modImplementation "curse.maven:litematica-${project.minecraft_version_out}-308892:${project.litematica_fileid}"
-	//modImplementation "curse.maven:malilib-${project.minecraft_version_out}-303119:${project.malilib_fileid}"
-	modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
-	//modImplementation "fi.dy.masa.litematica:litematica-fabric-${project.minecraft_version_out}:${project.litematica_version}"
-	//modImplementation "com.github.sakura-ryoko:malilib:${project.malilib_id}"
-	modImplementation "com.github.sakura-ryoko:litematica:${project.litematica_id}"
-
-	include(modApi(fabricApi.module("fabric-networking-api-v1", project.fabric_api_version)))
-	include(modApi(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version)))
-
-	modCompileOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
-}
-
-group = project.maven_group + "." + project.mod_id
-archivesBaseName = project.mod_file_name + '-' + project.minecraft_version_out
-version = project.mod_version
-
-processResources {
-	exclude '**/*.xcf'
-	exclude '**/xcf'
-
-	inputs.property "mod_version", project.mod_version
-
-	filesMatching("fabric.mod.json") {
-		expand "mod_version": project.mod_version
+tasks.register('buildAndGather') {
+	subprojects {
+		dependsOn project.tasks.named('build').get()
 	}
-}
-
-java {
-	withSourcesJar()
-}
-
-jar {
-	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
-	}
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
-	it.options.release = 21
-}
-
-tasks.withType(AbstractArchiveTask).configureEach {
-	preserveFileTimestamps = true
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
+	doFirst {
+		println 'Gathering builds'
+		def buildLibs = {
+			p -> p.buildDir.toPath().resolve('libs')
 		}
-	}
-	repositories {
+		delete fileTree(buildLibs(rootProject)) {
+			include '*'
+		}
+		subprojects {
+			copy {
+				from(buildLibs(project)) {
+					include '*.jar'
+					exclude '*-dev.jar', '*-sources.jar', '*-shadow.jar'
+				}
+				into buildLibs(rootProject)
+				duplicatesStrategy DuplicatesStrategy.INCLUDE
+			}
+		}
 	}
 }

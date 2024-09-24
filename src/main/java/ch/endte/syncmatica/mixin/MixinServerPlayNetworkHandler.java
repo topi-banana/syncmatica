@@ -16,13 +16,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.DisconnectionInfo;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+//#if MC>=12006
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.server.network.ConnectedClientData;
+//#endif
+
+//#if MC >= 12100
+import net.minecraft.network.DisconnectionInfo;
+//#else
+//$$ import net.minecraft.text.Text;
+//#endif
 
 @Mixin(value = ServerPlayNetworkHandler.class, priority = 1001)
 public abstract class MixinServerPlayNetworkHandler implements IServerPlay
@@ -35,13 +43,23 @@ public abstract class MixinServerPlayNetworkHandler implements IServerPlay
     private ServerCommunicationManager comManager = null;
 
     @Inject(method = "<init>", at = @At("TAIL"))
+    //#if MC>=12006
     public void syncmatica$onConnect(MinecraftServer server, ClientConnection clientConnection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci)
+    //#else
+    //$$ public void syncmatica$onConnect(MinecraftServer server, ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci)
+    //#endif
     {
         syncmatica$operateComms(sm -> sm.onPlayerJoin(syncmatica$getExchangeTarget(), player));
     }
 
     @Inject(method = "onDisconnected", at = @At("HEAD"))
+
+
+    //#if MC >= 12100
     public void syncmatica$onDisconnected(DisconnectionInfo info, CallbackInfo ci)
+    //#else
+    //$$ private void syncmatica$handlePacket(Text reason, CallbackInfo ci)
+    //#endif
     {
         syncmatica$operateComms(sm -> sm.onPlayerLeave(syncmatica$getExchangeTarget()));
     }

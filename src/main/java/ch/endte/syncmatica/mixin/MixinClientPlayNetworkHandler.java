@@ -16,7 +16,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+
+//#if MC >= 12002
 import net.minecraft.network.packet.CustomPayload;
+//#else
+//$$ import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+//#endif
 
 @Mixin(value = ClientPlayNetworkHandler.class, priority = 1001)
 public abstract class MixinClientPlayNetworkHandler implements IClientPlay
@@ -27,7 +32,12 @@ public abstract class MixinClientPlayNetworkHandler implements IClientPlay
     private ClientCommunicationManager comManager = null;
 
     @Inject(method = "onCustomPayload", at = @At("HEAD"), cancellable = true)
+
+    //#if MC >= 12002
     private void syncmatica$handlePacket(CustomPayload packet, CallbackInfo ci)
+    //#else
+    //$$ private void syncmatica$handlePacket(CustomPayloadS2CPacket packet, CallbackInfo ci)
+    //#endif
     {
         if (!MinecraftClient.getInstance().isOnThread())
         {
